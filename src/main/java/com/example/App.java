@@ -21,7 +21,6 @@ public class App extends Application {
         stage.setScene(scene);
         stage.setTitle("Escola");
         stage.setResizable(false);
-        stage.setAlwaysOnTop(true);
         stage.show();
     }
 

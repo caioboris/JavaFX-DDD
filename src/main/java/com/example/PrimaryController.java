@@ -4,67 +4,115 @@ import java.util.ArrayList;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Alert.AlertType;
 
 public class PrimaryController {
 
-    @FXML TextField txtNome;
-    @FXML TextField txtTurma;
-    @FXML TextField txtRm;
-    @FXML ListView<Aluno> lista;
-    @FXML RadioButton optOrdenarPorNome;
-    @FXML RadioButton optOrdenarPorTurma;
-    
-    ArrayList<Aluno> alunos = new ArrayList<>();
+    @FXML TextField nmUsuario;
+    @FXML TextField cdEquipamento;
+    @FXML RadioButton catComputador;
+    @FXML RadioButton catImpressora;
+    @FXML RadioButton catRede;
+    @FXML CheckBox atvPrimeiroContato;
+    @FXML CheckBox atvAtendido;
+    @FXML CheckBox atvEncerrado;
 
-    public void adicionarAluno(){
+    @FXML ListView<Chamado> lista;
+    
+    ArrayList<Chamado> chamados = new ArrayList<>();
+
+    public void adicionarChamado(){
         
-        var aluno = new Aluno(
-            txtNome.getText(),
-            txtTurma.getText(),
-            Integer.valueOf(txtRm.getText())
+        var categoria = Categoria.Computador;
+        var atividades = new ArrayList<Atividade>();
+
+        if(atvPrimeiroContato.isSelected())
+            atividades.add(Atividade.PrimeiroContato);
+        if(atvAtendido.isSelected())
+            atividades.add(Atividade.Atendido);
+        if(atvEncerrado.isSelected())
+            atividades.add(Atividade.Encerrado);
+
+        if(catImpressora.isSelected())
+            categoria = Categoria.Impressora;
+        if(catRede.isSelected())
+            categoria = Categoria.Rede;
+
+        var chamado = new Chamado(
+            nmUsuario.getText(),
+            cdEquipamento.getText(),
+            categoria,
+            atividades
         );
 
-        alunos.add(aluno);
+        chamados.add(chamado);
         
-        txtNome.clear();
-        txtTurma.clear();
-        txtRm.clear();
+        nmUsuario.clear();
+        cdEquipamento.clear();
         
         atualizarTela();
     }
     
     private void atualizarTela() {
-        ordenar();
         lista.getItems().clear();
-        for(var aluno: alunos){
-            lista.getItems().add(aluno);
+        for(var chamado: chamados){
+            lista.getItems().add(chamado);
         }
     }
 
-    private void ordenar() {
-        //anonymous class
-        if(optOrdenarPorNome.isSelected())
-            alunos.sort( (o1, o2) -> o1.nome().compareToIgnoreCase(o2.nome()) );
-            
-        if(optOrdenarPorTurma.isSelected())
-            alunos.sort( (o1, o2) -> o1.turma().compareToIgnoreCase(o2.turma()) );
-    }
-
     public void apagar(){
-        var aluno = lista.getSelectionModel().getSelectedItem();
+        var chamado = lista.getSelectionModel().getSelectedItem();
 
         Alert mensAlert = new Alert(AlertType.CONFIRMATION);
         mensAlert.setHeaderText("Atenção!");
-        mensAlert.setContentText("Você tem certeza que deseja excluir o aluno "+ aluno.rm() + " da lista?");
+        mensAlert.setContentText("Você tem certeza que deseja excluir o chamado da lista?");
         var resposta = mensAlert.showAndWait();
 
         if(resposta.isPresent() && resposta.get().equals(ButtonType.OK)){
-            alunos.remove(aluno);
+            chamados.remove(chamado);
+            atualizarTela();
+        }
+    }
+
+    public void editar(){
+        var chamado = lista.getSelectionModel().getSelectedItem();
+
+        
+        nmUsuario.setText(chamado.nmUsuario());
+        cdEquipamento.setText(chamado.cdEquipamento());
+        
+        if(chamado.categoria() == Categoria.Computador)
+            catComputador.setSelected(true);
+        if(chamado.categoria() == Categoria.Impressora)
+            catImpressora.setSelected(true);
+        if(chamado.categoria() == Categoria.Computador)
+            catRede.setSelected(true);
+
+        chamado.atividades().forEach((atividade) ->{
+            if(atividade == Atividade.Atendido){
+                atvAtendido.setSelected(true);
+            }
+            if(atividade == Atividade.PrimeiroContato){
+                atvPrimeiroContato.setSelected(true);
+            }
+            if(atividade == Atividade.Encerrado){
+                atvAtendido.setSelected(true);
+            }
+        });
+        
+        Alert mensAlert = new Alert(AlertType.CONFIRMATION);
+        mensAlert.setHeaderText("Atenção!");
+        mensAlert.setContentText("Você tem certeza que deseja editar o chamado da lista?");
+        var resposta = mensAlert.showAndWait();
+        
+
+        if(resposta.isPresent() && resposta.get().equals(ButtonType.OK)){
+            chamados.remove(chamado);
             atualizarTela();
         }
     }
